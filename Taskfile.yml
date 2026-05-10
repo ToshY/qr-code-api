@@ -1,0 +1,173 @@
+version: '3'
+
+vars:
+  IMAGE: toshy/qr-code-api
+
+env:
+  PUID:
+    sh: id -u
+  PGID:
+    sh: id -g
+  DOCKER_COMPOSE_RUN: docker compose --progress quiet run --rm --build --remove-orphans
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  # Docker
+  build:
+    desc: Build local images
+    vars:
+      TARGETS: [ 'dev', 'prod' ]
+    cmds:
+      - task: zensical:build
+      - for:
+          var: TARGETS
+        cmd: docker buildx build --load --target {{.ITEM}} --tag {{.IMAGE}}:{{.ITEM}} .
+
+  up:
+    desc: Up service
+    silent: true
+    cmds:
+      - docker compose up -d --remove-orphans
+      - printf "Visit \033[32;4m%s\033[0m to use your application\n" "http://localhost:8000/v1/docs"
+
+  down:
+    desc: Down service
+    cmds:
+      - docker compose down --remove-orphans
+
+  logs:
+    desc: Show logs
+    cmds:
+      - docker compose logs -ft
+
+  # Shell
+  shell:dev:
+    desc: Container shell
+    vars:
+      TARGET: 'dev'
+    cmds:
+      - $DOCKER_COMPOSE_RUN {{.TARGET}} {{.CLI_ARGS | default "/bin/sh"}}
+
+  # Test
+  dev:cli:
+    desc: Test dev image - cli (compose)
+    vars:
+      OUTPUT_DIRECTORY: '{{.o | default "output"}}'
+    cmds:
+      - mkdir -p ${PWD}/{{.OUTPUT_DIRECTORY}}
+      - $DOCKER_COMPOSE_RUN dev python -m qr generate {{.CLI_ARGS | default "--help"}}
+
+  dev:server:
+    desc: Test dev image - server (compose)
+    vars:
+      OUTPUT_DIRECTORY: '{{.o | default "output"}}'
+    cmds:
+      - mkdir -p ${PWD}/{{.OUTPUT_DIRECTORY}}
+      - $DOCKER_COMPOSE_RUN dev
+
+  prod:cli:
+    desc: Test prod image (docker)
+    silent: true
+    vars:
+      TARGET: 'prod'
+      OUTPUT_DIRECTORY: '{{.o | default "output"}}'
+    cmds:
+      - docker buildx build --quiet --load --target {{.TARGET}} --tag {{.IMAGE}}:{{.TARGET}} .
+      - mkdir -p ${PWD}/{{.OUTPUT_DIRECTORY}}
+      - docker run -it -u $(id -u):$(id -g) -v ${PWD}/{{.OUTPUT_DIRECTORY}}:/app/output --rm {{.IMAGE}}:{{.TARGET}} {{.CLI_ARGS | default "--help"}}
+
+  prod:server:
+    desc: Test prod image (docker)
+    silent: true
+    vars:
+      TARGET: 'prod'
+    cmds:
+      - docker buildx build --quiet --load --target {{.TARGET}} --tag {{.IMAGE}}:{{.TARGET}} .
+      - docker run -it -u $(id -u):$(id -g) -p 8001:8000 --name qr-code --rm {{.IMAGE}}:{{.TARGET}} server
+
+  # Docs
+  zensical:build:
+    desc: Zensical build
+    cmds:
+      - |
+        export MAJOR_VERSION=v$(ls -1 ./docs/version | grep -E '^v[0-9]+' | sed 's/^v//' | sort -n | tail -1)
+        envsubst '$MAJOR_VERSION' < zensical.toml > .zensical.runtime.toml
+        docker run --rm \
+          -u "$(id -u):$(id -g)" \
+          -v "${PWD}:/docs" \
+          zensical/zensical:0.0 \
+          build -f .zensical.runtime.toml
+        rm -f .zensical.runtime.toml
+
+  zensical:live:
+    desc: Zensical development server
+    vars:
+      PORT: '{{.p | default "8002"}}'
+    cmds:
+      - |
+        export MAJOR_VERSION=v$(ls -1 ./docs/version | grep -E '^v[0-9]+' | sed 's/^v//' | sort -n | tail -1)
+        envsubst '$MAJOR_VERSION' < zensical.toml > .zensical.runtime.toml
+        trap 'rm -f .zensical.runtime.toml' EXIT
+        docker run --rm \
+          -u $(id -u):$(id -g) \
+          -p {{.PORT}}:8000 \
+          -v ${PWD}:/docs \
+          zensical/zensical:0.0 \
+          serve -f .zensical.runtime.toml --dev-addr=0.0.0.0:8000
+
+  # OpenAPI
+  openapi:
+    desc: Retrieve OpenAPI specs
+    silent: true
+    vars:
+      VERSION: '{{.v | default "1"}}'
+    cmds:
+      - |
+        API_VERSION="v{{.VERSION}}"
+        FILE_LOCATION="./docs/version/v{{.VERSION}}/openapi.json"
+        API_URL="http://localhost:8000/$API_VERSION/openapi.json"
+        curl -s $API_URL | jq . > "./docs/version/$API_VERSION/openapi.json"
+        printf "File saved to \033[32;4m%s\033[0m\n" "$FILE_LOCATION"
+
+  # Development tools
+  contribute:
+    desc: Contribute
+    cmds:
+      - task: black:fix
+      - task: ruff:fix
+      - task: mypy
+      - task: pytest
+
+  ruff:
+    desc: Run ruff
+    cmds:
+      - $DOCKER_COMPOSE_RUN dev ruff check .
+
+  ruff:fix:
+    desc: Run ruff fix
+    cmds:
+      - $DOCKER_COMPOSE_RUN dev ruff check --fix .
+
+  black:
+    desc: Run black
+    cmds:
+      - $DOCKER_COMPOSE_RUN dev black . --check --diff --color
+
+  black:fix:
+    desc: Run black fix
+    cmds:
+      - $DOCKER_COMPOSE_RUN dev black .
+
+  mypy:
+    desc: Run mypy
+    cmds:
+      - $DOCKER_COMPOSE_RUN dev mypy .
+
+  pytest:
+    desc: Run pytest
+    cmds:
+      - $DOCKER_COMPOSE_RUN dev pytest --snapshot-update
+

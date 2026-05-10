@@ -1,0 +1,25 @@
+name: Check version docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  check-version-docs:
+    name: Validate docs/version/ contents
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run check-version-docs.sh
+        shell: bash
+        run: bash scripts/check-version-docs.sh
+

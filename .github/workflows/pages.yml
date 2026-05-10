@@ -1,0 +1,65 @@
+name: Deploy docs to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+# Allow only one concurrent deployment, skipping runs queued between the run
+# in-progress and the latest queued. Do NOT cancel in-progress runs.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    name: Build and deploy docs (latest major)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Resolve latest major version
+        id: ver
+        shell: bash
+        run: |
+          MAJOR_VERSION=v$(ls -1 ./docs/version | grep -E '^v[0-9]+' | sed 's/^v//' | sort -n | tail -1)
+          echo "major=$MAJOR_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Latest major: $MAJOR_VERSION"
+
+      - name: Build Zensical site
+        shell: bash
+        env:
+          MAJOR_VERSION: ${{ steps.ver.outputs.major }}
+        run: |
+          sed -e "s|\$MAJOR_VERSION|$MAJOR_VERSION|g" zensical.toml > .zensical.runtime.toml
+          docker run --rm \
+            -u "$(id -u):$(id -g)" \
+            -v "${PWD}:/docs" \
+            zensical/zensical:0.0 \
+            build -f .zensical.runtime.toml
+          rm -f .zensical.runtime.toml
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/version/${{ steps.ver.outputs.major }}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+
+

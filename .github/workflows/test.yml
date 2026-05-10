@@ -1,0 +1,42 @@
+name: Testing with Pytest
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  pytest:
+    name: Run Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Prepare docs for test
+        shell: bash
+        run: |
+          MAJOR_VERSION=v$(ls -1 ./docs/version | grep -E '^v[0-9]+' | sed 's/^v//' | sort -n | tail -1)
+          sed "s|\$MAJOR_VERSION|$MAJOR_VERSION|g" zensical.toml > .zensical.runtime.toml
+          docker run --rm \
+            -u "$(id -u):$(id -g)" \
+            -v "${PWD}:/docs" \
+            zensical/zensical:0.0 \
+            build -f .zensical.runtime.toml
+          rm -f .zensical.runtime.toml
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install requirements
+        run: pip install -r requirements.txt -r requirements.dev.txt
+
+      - name: Pytest check
+        run: pytest .

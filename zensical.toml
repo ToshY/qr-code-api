@@ -1,0 +1,56 @@
+# $MAJOR_VERSION is substituted via `envsubst` by the Taskfile before the file
+# is passed to `zensical build`/`zensical serve`. The substituted file is
+# written to .zensical.runtime.toml (gitignored).
+
+[project]
+site_name = "QR Code API Documentation"
+site_description = "Creating custom QR codes"
+docs_dir = "docs/version/$MAJOR_VERSION/"
+site_dir = "site/version/$MAJOR_VERSION/"
+
+extra_css = [
+    "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/tokyo-night-dark.min.css",
+]
+extra_javascript = [
+    "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js",
+]
+
+[project.theme]
+favicon = "favicon.ico"
+features = [
+    "content.code.copy",
+    "content.code.annotate",
+    "navigation.top",
+]
+
+[project.theme.icon]
+logo = "fontawesome/solid/qrcode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "teal"
+accent = "teal"
+toggle.icon = "material/weather-sunny"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "teal"
+accent = "teal"
+toggle.icon = "material/weather-night"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions.abbr]
+[project.markdown_extensions.tables]
+[project.markdown_extensions.toc]
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.extra]
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.snippets]
+[project.markdown_extensions.pymdownx.superfences]
+

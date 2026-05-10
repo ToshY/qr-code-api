@@ -1,0 +1,31 @@
+name: Pip audit
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  security:
+    name: Run pip-audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install requirements
+        run: pip install -r requirements.txt
+
+      - name: Pip audit
+        uses: pypa/gh-action-pip-audit@v1.1.0
+        continue-on-error: false

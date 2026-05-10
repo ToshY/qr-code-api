@@ -1,0 +1,8 @@
+click>=8.2,<9.0
+fastapi[standard]>=0.118
+pydantic>=2.7.0,<3.0.0
+uvicorn>=0.37
+pillow>=11.3,<13.0
+qrcode[pil]>=8.2,<9.0
+types-qrcode>=8.2,<9.0
+starlette>=0.48,<1.0

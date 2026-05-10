@@ -1,0 +1,34 @@
+fail_fast: true
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: Ruff
+        entry: docker compose run -T --rm dev ruff check .
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: black
+        name: Black
+        entry: docker compose run -T --rm dev black . --check --diff --color
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: static
+        name: Mypy
+        entry: docker compose run -T --rm dev mypy .
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: pytest
+        name: Pytest
+        entry: docker compose run -T --rm dev pytest .
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: check-docs
+        name: Check version documentation files
+        entry: bash -c 'scripts/check-version-docs.sh'
+        language: system
+        pass_filenames: false
+        files: ^docs/version/

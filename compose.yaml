@@ -1,0 +1,13 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    user: "${PUID:-1000}:${PGID:-1000}"
+    stop_signal: SIGINT
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    command: ["python", "-m", "qr", "server", "--host", "0.0.0.0", "--port", "8000", "--reload"]

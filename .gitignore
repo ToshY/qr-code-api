@@ -1,0 +1,18 @@
+# cache
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+# miscellaneous
+output/
+site/
+.zensical.runtime.toml
+.cache/
+# IDE
+.idea/
+.vscode/
+# env
+.env
+.venv/
+venv/

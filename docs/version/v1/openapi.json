@@ -1,0 +1,1282 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "QR Code Generator API",
+    "description": "Generate styled QR codes (classic, rounded, gradient, embedded)",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/qr": {
+      "post": {
+        "tags": [
+          "QR"
+        ],
+        "summary": "Generate QR Code",
+        "description": "Generate a QR code in PNG, JPEG, WebP, or SVG format. Supports color masks, embedded images, and optional JSON data URI output.",
+        "operationId": "create_qr_v1_qr_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateQrRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Returns the QR code as an image or a JSON data URI.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CircleModuleDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "circle_module",
+            "title": "Type",
+            "default": "circle_module"
+          },
+          "ratio": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Ratio",
+            "description": "The ratio of the module size to the box size (0.0 to 1.0). Controls the gap between modules.",
+            "default": 0.8,
+            "example": 0.8
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CircleModuleDrawerOptions"
+      },
+      "CreateQrRequest": {
+        "properties": {
+          "data": {
+            "type": "string",
+            "title": "Data",
+            "description": "The content to encode in the QR code",
+            "example": "https://example.com"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 40,
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "QR code version (1–40). None for auto-fit"
+          },
+          "fit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fit",
+            "description": "Automatically fit QR code if version is None",
+            "default": true,
+            "example": true
+          },
+          "error_correction": {
+            "$ref": "#/components/schemas/QrErrorCorrection",
+            "description": "Error correction level. L (~7%), M (~15%), Q (~25%), H (~30%). Must be 'H' if a logo is provided.",
+            "default": "M",
+            "example": "M"
+          },
+          "mask_pattern": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 7,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mask Pattern",
+            "description": "A mask pattern changes which modules are dark and which are light according to a particular rule."
+          },
+          "output": {
+            "$ref": "#/components/schemas/QrOutput",
+            "description": "Output format and options",
+            "default": {
+              "format": "png",
+              "as_json": false
+            },
+            "example": {
+              "as_json": false,
+              "format": "png"
+            }
+          },
+          "box_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Box Size",
+            "description": "Size of each QR code box in pixels",
+            "default": 10,
+            "example": 10
+          },
+          "border": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Border",
+            "description": "Width of the border around the QR code",
+            "default": 4,
+            "example": 4
+          },
+          "module_drawer": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SvgSquareDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/SvgCircleDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/SvgPathSquareDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/SvgPathCircleDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/SquareModuleDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/GappedSquareModuleDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/CircleModuleDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/RoundedModuleDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/VerticalBarsDrawerOptions"
+              },
+              {
+                "$ref": "#/components/schemas/HorizontalBarsDrawerOptions"
+              }
+            ],
+            "title": "Module Drawer",
+            "description": "Module drawer style and its associated options. The 'type' determines the specific drawer model and its fields (e.g., 'ratio').",
+            "default": {
+              "type": "square_module"
+            },
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "circle_module": "#/components/schemas/CircleModuleDrawerOptions",
+                "gapped_square_module": "#/components/schemas/GappedSquareModuleDrawerOptions",
+                "horizontal_bars": "#/components/schemas/HorizontalBarsDrawerOptions",
+                "rounded_module": "#/components/schemas/RoundedModuleDrawerOptions",
+                "square_module": "#/components/schemas/SquareModuleDrawerOptions",
+                "svg_circle": "#/components/schemas/SvgCircleDrawerOptions",
+                "svg_path_circle": "#/components/schemas/SvgPathCircleDrawerOptions",
+                "svg_path_square": "#/components/schemas/SvgPathSquareDrawerOptions",
+                "svg_square": "#/components/schemas/SvgSquareDrawerOptions",
+                "vertical_bars": "#/components/schemas/VerticalBarsDrawerOptions"
+              }
+            },
+            "example": {
+              "ratio": 0.6,
+              "type": "rounded_module"
+            }
+          },
+          "logo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QrLogoConfiguration"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional configuration for an embedded logo image in the center. Requires 'error_correction' to be 'H' and output format to be PIL-based (e.g., png, jpeg, webp)."
+          },
+          "color_mask": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QrColorMask"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional color mask to style the QR code"
+          },
+          "fill_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Foreground color of the QR code",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 0
+            },
+            "example": {
+              "b": 0,
+              "g": 0,
+              "r": 0
+            }
+          },
+          "back_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Background color of the QR code",
+            "default": {
+              "r": 255,
+              "g": 255,
+              "b": 255
+            },
+            "example": {
+              "b": 255,
+              "g": 255,
+              "r": 255
+            }
+          },
+          "eye_drawer": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/QrEyeConfiguration"
+                },
+                "propertyNames": {
+                  "$ref": "#/components/schemas/QrEyePosition"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eye Drawer",
+            "description": "Custom styling for the position adjustment patterns (eyes). Keys must be 'top_left', 'top_right', or 'bottom_left'. Only eyes present in this dictionary will be customized.",
+            "example": {
+              "bottom_left": {
+                "inner": {
+                  "corners": [
+                    true,
+                    true,
+                    true,
+                    true
+                  ],
+                  "outline": {
+                    "b": 0,
+                    "g": 0,
+                    "r": 0
+                  },
+                  "radius": 1
+                },
+                "outer": {
+                  "corners": [
+                    true,
+                    true,
+                    true,
+                    true
+                  ],
+                  "outline": {
+                    "b": 0,
+                    "g": 0,
+                    "r": 0
+                  },
+                  "radius": 1
+                }
+              },
+              "top_left": {
+                "inner": {
+                  "corners": [
+                    true,
+                    true,
+                    true,
+                    true
+                  ],
+                  "outline": {
+                    "b": 0,
+                    "g": 0,
+                    "r": 0
+                  },
+                  "radius": 0.33
+                },
+                "outer": {
+                  "corners": [
+                    true,
+                    true,
+                    true,
+                    true
+                  ],
+                  "outline": {
+                    "b": 0,
+                    "g": 0,
+                    "r": 0
+                  },
+                  "radius": 0.33
+                }
+              },
+              "top_right": {
+                "inner": {
+                  "corners": [
+                    true,
+                    true,
+                    true,
+                    true
+                  ],
+                  "outline": {
+                    "b": 0,
+                    "g": 0,
+                    "r": 0
+                  },
+                  "radius": 0.66
+                },
+                "outer": {
+                  "corners": [
+                    true,
+                    true,
+                    true,
+                    true
+                  ],
+                  "outline": {
+                    "b": 0,
+                    "g": 0,
+                    "r": 0
+                  },
+                  "radius": 0.66
+                }
+              }
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "CreateQrRequest",
+        "example": {
+          "back_color": {
+            "b": 255,
+            "g": 255,
+            "r": 255
+          },
+          "border": 4,
+          "box_size": 10,
+          "color_mask": {
+            "options": {
+              "back_color": {
+                "b": 255,
+                "g": 255,
+                "r": 255
+              },
+              "front_color": {
+                "b": 0,
+                "g": 0,
+                "r": 0
+              }
+            },
+            "type": "solid"
+          },
+          "data": "https://example.com",
+          "error_correction": "M",
+          "eye_drawer": {
+            "bottom_left": {
+              "inner": {
+                "corners": [
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "outline": {
+                  "b": 0,
+                  "g": 0,
+                  "r": 0
+                },
+                "radius": 1
+              },
+              "outer": {
+                "corners": [
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "outline": {
+                  "b": 0,
+                  "g": 0,
+                  "r": 0
+                },
+                "radius": 1
+              }
+            },
+            "top_left": {
+              "inner": {
+                "corners": [
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "outline": {
+                  "b": 0,
+                  "g": 0,
+                  "r": 0
+                },
+                "radius": 0.33
+              },
+              "outer": {
+                "corners": [
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "outline": {
+                  "b": 0,
+                  "g": 0,
+                  "r": 0
+                },
+                "radius": 0.33
+              }
+            },
+            "top_right": {
+              "inner": {
+                "corners": [
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "outline": {
+                  "b": 0,
+                  "g": 0,
+                  "r": 0
+                },
+                "radius": 0.66
+              },
+              "outer": {
+                "corners": [
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "outline": {
+                  "b": 0,
+                  "g": 0,
+                  "r": 0
+                },
+                "radius": 0.66
+              }
+            }
+          },
+          "fill_color": {
+            "b": 0,
+            "g": 0,
+            "r": 0
+          },
+          "fit": true,
+          "logo": {
+            "image": "BASE64_ENCODED_IMAGE_STRING",
+            "ratio": 0.25,
+            "resample": "lanczos"
+          },
+          "module_drawer": {
+            "ratio": 0.8,
+            "type": "svg_circle"
+          },
+          "output": {
+            "as_json": false,
+            "format": "png"
+          },
+          "version": 5
+        }
+      },
+      "GappedSquareModuleDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "gapped_square_module",
+            "title": "Type",
+            "default": "gapped_square_module"
+          },
+          "ratio": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Ratio",
+            "description": "The ratio of the module size to the box size (0.0 to 1.0). Controls the gap between modules.",
+            "default": 0.8,
+            "example": 0.8
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "GappedSquareModuleDrawerOptions"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HorizontalBarsDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "horizontal_bars",
+            "title": "Type",
+            "default": "horizontal_bars"
+          },
+          "shrink": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Shrink",
+            "description": "The vertical shrink ratio. Controls the thickness of the bars. Smaller value equals smaller bars.",
+            "default": 0.8,
+            "example": 0.8
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "HorizontalBarsDrawerOptions"
+      },
+      "HorizontalGradientOptions": {
+        "properties": {
+          "back_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Background color",
+            "default": {
+              "r": 255,
+              "g": 255,
+              "b": 255
+            }
+          },
+          "left_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Left color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 0
+            }
+          },
+          "right_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Right color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 255
+            }
+          }
+        },
+        "type": "object",
+        "title": "HorizontalGradientOptions"
+      },
+      "ImageMaskOptions": {
+        "properties": {
+          "back_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Background color",
+            "default": {
+              "r": 255,
+              "g": 255,
+              "b": 255
+            }
+          },
+          "color_mask_image": {
+            "type": "string",
+            "title": "Color Mask Image",
+            "description": "Base64-encoded image path for mask"
+          }
+        },
+        "type": "object",
+        "required": [
+          "color_mask_image"
+        ],
+        "title": "ImageMaskOptions"
+      },
+      "QrColorMask": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/QrColorMaskType",
+            "description": "Type of color mask"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SolidFillOptions"
+              },
+              {
+                "$ref": "#/components/schemas/RadialGradientOptions"
+              },
+              {
+                "$ref": "#/components/schemas/SquareGradientOptions"
+              },
+              {
+                "$ref": "#/components/schemas/HorizontalGradientOptions"
+              },
+              {
+                "$ref": "#/components/schemas/VerticalGradientOptions"
+              },
+              {
+                "$ref": "#/components/schemas/ImageMaskOptions"
+              }
+            ],
+            "title": "Options",
+            "description": "Options corresponding to the color mask type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "options"
+        ],
+        "title": "QrColorMask"
+      },
+      "QrColorMaskType": {
+        "type": "string",
+        "enum": [
+          "solid",
+          "radial",
+          "square",
+          "horizontal",
+          "vertical",
+          "image"
+        ],
+        "title": "QrColorMaskType"
+      },
+      "QrErrorCorrection": {
+        "type": "string",
+        "enum": [
+          "L",
+          "M",
+          "Q",
+          "H"
+        ],
+        "title": "QrErrorCorrection"
+      },
+      "QrEyeConfiguration": {
+        "properties": {
+          "outer": {
+            "$ref": "#/components/schemas/QrEyeDrawerStyle",
+            "description": "Styling for the 7x7 outer eye frame.",
+            "default": {
+              "outline": {
+                "b": 0,
+                "g": 0,
+                "r": 0
+              },
+              "radius": 0,
+              "corners": [
+                true,
+                true,
+                true,
+                true
+              ]
+            }
+          },
+          "inner": {
+            "$ref": "#/components/schemas/QrEyeDrawerStyle",
+            "description": "Styling for the 3x3 inner eyeball.",
+            "default": {
+              "outline": {
+                "b": 0,
+                "g": 0,
+                "r": 0
+              },
+              "radius": 0,
+              "corners": [
+                true,
+                true,
+                true,
+                true
+              ]
+            }
+          }
+        },
+        "type": "object",
+        "title": "QrEyeConfiguration"
+      },
+      "QrEyeDrawerStyle": {
+        "properties": {
+          "outline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RGBColor"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Outline",
+            "description": "Outline color (accepts RGB object or color string like 'black').",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 0
+            }
+          },
+          "radius": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Radius",
+            "description": "Normalized radius factor (0.0=square, 1.0=max curve).",
+            "default": 0,
+            "example": 0.8
+          },
+          "corners": {
+            "items": {
+              "type": "boolean"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Corners",
+            "description": "List of 4 booleans [NW, NE, SE, SW] to enable rounding on each corner.",
+            "default": [
+              true,
+              true,
+              true,
+              true
+            ],
+            "example": [
+              true,
+              true,
+              false,
+              true
+            ]
+          }
+        },
+        "type": "object",
+        "title": "QrEyeDrawerStyle"
+      },
+      "QrEyePosition": {
+        "type": "string",
+        "enum": [
+          "top_left",
+          "top_right",
+          "bottom_left"
+        ],
+        "title": "QrEyePosition"
+      },
+      "QrFormat": {
+        "type": "string",
+        "enum": [
+          "png",
+          "jpeg",
+          "webp",
+          "svg"
+        ],
+        "title": "QrFormat"
+      },
+      "QrLogoConfiguration": {
+        "properties": {
+          "image": {
+            "type": "string",
+            "title": "Image",
+            "description": "Base64-encoded logo image data."
+          },
+          "ratio": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Ratio",
+            "description": "Ratio of the logo size to the QR code size (0.0 to 1.0).",
+            "default": 0.25,
+            "example": 0.25
+          },
+          "filter": {
+            "$ref": "#/components/schemas/ResamplingFilter",
+            "description": "PIL image resampling filter to use when resizing the logo.",
+            "default": "lanczos",
+            "example": "lanczos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image"
+        ],
+        "title": "QrLogoConfiguration"
+      },
+      "QrOutput": {
+        "properties": {
+          "format": {
+            "$ref": "#/components/schemas/QrFormat",
+            "description": "Output format of the QR code",
+            "default": "png",
+            "example": "png"
+          },
+          "as_json": {
+            "type": "boolean",
+            "title": "As Json",
+            "description": "Return as JSON data URI if True",
+            "default": false,
+            "example": false
+          }
+        },
+        "type": "object",
+        "title": "QrOutput"
+      },
+      "RGBColor": {
+        "properties": {
+          "r": {
+            "type": "integer",
+            "title": "R",
+            "description": "Red channel (0–255)",
+            "default": 255,
+            "example": 255
+          },
+          "g": {
+            "type": "integer",
+            "title": "G",
+            "description": "Green channel (0–255)",
+            "default": 255,
+            "example": 255
+          },
+          "b": {
+            "type": "integer",
+            "title": "B",
+            "description": "Blue channel (0–255)",
+            "default": 255,
+            "example": 255
+          }
+        },
+        "type": "object",
+        "title": "RGBColor"
+      },
+      "RadialGradientOptions": {
+        "properties": {
+          "back_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Background color",
+            "default": {
+              "r": 255,
+              "g": 255,
+              "b": 255
+            }
+          },
+          "center_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Center color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 0
+            }
+          },
+          "edge_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Edge color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 255
+            }
+          }
+        },
+        "type": "object",
+        "title": "RadialGradientOptions"
+      },
+      "ResamplingFilter": {
+        "type": "string",
+        "enum": [
+          "nearest",
+          "box",
+          "bilinear",
+          "hamming",
+          "bicubic",
+          "lanczos"
+        ],
+        "title": "ResamplingFilter"
+      },
+      "RoundedModuleDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "rounded_module",
+            "title": "Type",
+            "default": "rounded_module"
+          },
+          "ratio": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Ratio",
+            "description": "The ratio of the module size to the box size (0.0 to 1.0). Controls the gap between modules.",
+            "default": 0.8,
+            "example": 0.8
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RoundedModuleDrawerOptions"
+      },
+      "SolidFillOptions": {
+        "properties": {
+          "back_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Background color",
+            "default": {
+              "r": 255,
+              "g": 255,
+              "b": 255
+            }
+          },
+          "front_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Foreground color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 0
+            }
+          }
+        },
+        "type": "object",
+        "title": "SolidFillOptions"
+      },
+      "SquareGradientOptions": {
+        "properties": {
+          "back_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Background color",
+            "default": {
+              "r": 255,
+              "g": 255,
+              "b": 255
+            }
+          },
+          "center_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Center color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 0
+            }
+          },
+          "edge_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Edge color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 255
+            }
+          }
+        },
+        "type": "object",
+        "title": "SquareGradientOptions"
+      },
+      "SquareModuleDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "square_module",
+            "title": "Type",
+            "default": "square_module"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SquareModuleDrawerOptions"
+      },
+      "StyleOptions": {
+        "properties": {
+          "svg": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Svg",
+            "description": "Keyword arguments passed directly to the SVG image factory (e.g., 'unit', 'scale'). Only used for SVG output.",
+            "example": {
+              "unit": "mm"
+            }
+          },
+          "background": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Background",
+            "description": "Arbitrary CSS key-value pairs for the QR background rectangle. Only used for SVG output.",
+            "default": {
+              "fill": "#FFFFFF",
+              "fill-opacity": 1
+            },
+            "example": {
+              "fill": "#FFFFFF",
+              "fill-opacity": 1
+            }
+          }
+        },
+        "type": "object",
+        "title": "StyleOptions"
+      },
+      "SvgCircleDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "svg_circle",
+            "title": "Type",
+            "default": "svg_circle"
+          },
+          "ratio": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Ratio",
+            "description": "The ratio of the module size to the box size (0.0 to 1.0). Controls the gap between modules.",
+            "default": 0.8,
+            "example": 0.8
+          },
+          "style": {
+            "$ref": "#/components/schemas/StyleOptions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SvgCircleDrawerOptions"
+      },
+      "SvgPathCircleDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "svg_path_circle",
+            "title": "Type",
+            "default": "svg_path_circle"
+          },
+          "ratio": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Ratio",
+            "description": "The ratio of the module size to the box size (0.0 to 1.0). Controls the gap between modules.",
+            "default": 0.8,
+            "example": 0.8
+          },
+          "style": {
+            "$ref": "#/components/schemas/StyleOptions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SvgPathCircleDrawerOptions"
+      },
+      "SvgPathSquareDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "svg_path_square",
+            "title": "Type",
+            "default": "svg_path_square"
+          },
+          "ratio": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Ratio",
+            "description": "The ratio of the module size to the box size (0.0 to 1.0). Controls the gap between modules.",
+            "default": 0.8,
+            "example": 0.8
+          },
+          "style": {
+            "$ref": "#/components/schemas/StyleOptions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SvgPathSquareDrawerOptions"
+      },
+      "SvgSquareDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "svg_square",
+            "title": "Type",
+            "default": "svg_square"
+          },
+          "ratio": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Ratio",
+            "description": "The ratio of the module size to the box size (0.0 to 1.0). Controls the gap between modules.",
+            "default": 0.8,
+            "example": 0.8
+          },
+          "style": {
+            "$ref": "#/components/schemas/StyleOptions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SvgSquareDrawerOptions"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerticalBarsDrawerOptions": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "vertical_bars",
+            "title": "Type",
+            "default": "vertical_bars"
+          },
+          "shrink": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Shrink",
+            "description": "The horizontal shrink ratio. Controls the thickness of the bars. Smaller value equals smaller bars.",
+            "default": 0.8,
+            "example": 0.8
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "VerticalBarsDrawerOptions"
+      },
+      "VerticalGradientOptions": {
+        "properties": {
+          "back_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Background color",
+            "default": {
+              "r": 255,
+              "g": 255,
+              "b": 255
+            }
+          },
+          "top_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Top color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 0
+            }
+          },
+          "bottom_color": {
+            "$ref": "#/components/schemas/RGBColor",
+            "description": "Bottom color",
+            "default": {
+              "r": 0,
+              "g": 0,
+              "b": 255
+            }
+          }
+        },
+        "type": "object",
+        "title": "VerticalGradientOptions"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "QR",
+      "description": "Generate QR codes."
+    }
+  ]
+}

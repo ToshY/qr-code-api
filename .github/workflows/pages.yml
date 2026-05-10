@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'docs/**'
+      - 'zensical.toml'
+      - '.github/workflows/pages.yml'
 
 # Allow only one concurrent deployment, skipping runs queued between the run
 # in-progress and the latest queued. Do NOT cancel in-progress runs.

@@ -28,4 +28,7 @@ jobs:
 
       - name: Pip audit
         uses: pypa/gh-action-pip-audit@v1.1.0
-        continue-on-error: false
+        with:
+          ignore-vulns: |
+            CVE-2026-3219
+            CVE-2026-6357

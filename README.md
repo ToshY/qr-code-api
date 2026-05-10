@@ -14,9 +14,17 @@
 
 ## 📝 Quickstart
 
-The published image is `ghcr.io/toshy/qr-code-api`. By default, the container runs in **CLI mode** (the `ENTRYPOINT` is the `qr` command, with `--help` as the default `CMD`); pass `server` as the argument to instead start the **FastAPI server**.
+The published image is [`ghcr.io/toshy/qr-code-api`](ghcr.io/toshy/qr-code-api).
 
-### CLI
+By default, the container runs in **CLI mode**; pass `server` as the argument to instead start the **FastAPI server**.
+
+### ⚙ CLI
+
+Make sure you have a writable `./output/` directory (same user) for the CLI to write generated QR code images into.
+
+```shell
+mkdir -p ./output
+```
 
 #### `docker run`
 
@@ -29,7 +37,6 @@ docker run --rm ghcr.io/toshy/qr-code-api:latest
 Generate a QR code into `./output/`:
 
 ```sh
-mkdir -p output
 docker run --rm \
   -u $(id -u):$(id -g) \
   -v ${PWD}/output:/app/output \
@@ -56,9 +63,17 @@ Run it with the desired CLI args (these are appended to the image's `ENTRYPOINT`
 docker compose run --rm qr-code-cli generate '{"data":"https://example.com"}'
 ```
 
-### API server
+### 🚀 API server
 
-The server listens on port `8000` and exposes Swagger UI at `/v1/docs`.
+The server listens on port `8000`. For each major API version `v{N}` (e.g. `v1`), the following endpoints are exposed:
+
+| Endpoint             | Method | Description                                                              |
+|----------------------|--------|--------------------------------------------------------------------------|
+| `/v{N}/qr`           | `POST` | Generate a QR code (PNG, JPEG, WebP, or SVG; raw image or JSON data URI) |
+| `/v{N}/docs`         | `GET`  | Swagger UI                                                               |
+| `/v{N}/redoc`        | `GET`  | ReDoc                                                                    |
+| `/v{N}/readme`       | `GET`  | Rendered README documentation                                            |
+| `/v{N}/openapi.json` | `GET`  | OpenAPI specification                                                    |
 
 #### `docker run`
 

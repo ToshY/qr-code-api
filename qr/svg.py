@@ -40,7 +40,6 @@ class SvgPathImageCustom(svg.SvgPathImage):
     background_css_string: str = "fill: #FFFFFF; fill-opacity: 1.0;"
 
     # We do not need to copy drawer aliases since we manage drawer selection via schema
-
     def __init__(self, *args, **kwargs):
         self._subpaths: list[str] = []  # type: ignore[annotation-unchecked]
         super().__init__(*args, **kwargs)
@@ -53,8 +52,6 @@ class SvgPathImageCustom(svg.SvgPathImage):
         self._subpaths.append(path_str)
 
     def process(self):
-        # Store the path just in case someone wants to use it again or in some
-        # unique way.
         self.path = ET.Element(
             ET.QName("path"),  # type: ignore[call-arg]
             d="".join(self._subpaths),
@@ -81,8 +78,6 @@ def create_dynamic_svg_image_class(
     css_style = dict_to_css_string(drawer_options.style.background)
     drawer_type_name = getattr(drawer_options.type, "value", drawer_options.type)
 
-    # 3. MAP DRAWER TYPE TO BASE CLASS (for drawer_aliases)
-    # FIX: Use Type[Any] to simplify the type hint and avoid dependency issues.
     drawer_class_map: Dict[str, Type[Any]] = {
         QrModuleDrawer.SvgSquareDrawer.value: svg_drawers.SvgSquareDrawer,
         QrModuleDrawer.SvgCircleDrawer.value: svg_drawers.SvgCircleDrawer,
@@ -114,7 +109,6 @@ def create_dynamic_svg_image_class(
         drawer_options.type: dynamic_alias,
     }
 
-    # 6. DYNAMICALLY CREATE THE SUBCLASS
     class_name = (
         f"DynamicSvgImage_{drawer_type_name.replace('-', '_')}_{int(ratio * 100)}"
     )
@@ -124,7 +118,7 @@ def create_dynamic_svg_image_class(
         (base_image_class,),
         {
             "drawer_aliases": new_aliases,
-            "background_css_string": css_style,  # Pass the single CSS string
+            "background_css_string": css_style,
         },
     )
     return DynamicSvgImageClass

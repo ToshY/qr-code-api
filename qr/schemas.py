@@ -114,7 +114,6 @@ class SvgPathCircleDrawerOptions(SvgBaseModuleDrawerOptions):
     )
 
 
-# --- PIL DRAWERS ---
 class SquareModuleDrawerOptions(PilBaseModuleDrawerOptions):
     type: Literal[QrModuleDrawer.SquareModuleDrawer] = QrModuleDrawer.SquareModuleDrawer
 
@@ -147,12 +146,10 @@ class HorizontalBarsDrawerOptions(PilBaseModuleDrawerOptions):
     ] = 0.8
 
 
-# Ratio PIL Drawers
 class GappedSquareModuleDrawerOptions(PilBaseModuleDrawerOptions):
     type: Literal[QrModuleDrawer.GappedSquareModuleDrawer] = (
         QrModuleDrawer.GappedSquareModuleDrawer
     )
-    # Ratio field is now defined inline
     ratio: Annotated[
         float,
         Field(
@@ -166,7 +163,6 @@ class GappedSquareModuleDrawerOptions(PilBaseModuleDrawerOptions):
 
 class CircleModuleDrawerOptions(PilBaseModuleDrawerOptions):
     type: Literal[QrModuleDrawer.CircleModuleDrawer] = QrModuleDrawer.CircleModuleDrawer
-    # Ratio field is now defined inline
     ratio: Annotated[
         float,
         Field(
@@ -265,7 +261,7 @@ class ImageMaskOptions(BaseModel):
     )
     color_mask_image: Annotated[
         str, Field(description="Base64-encoded image path for mask")
-    ]  # required
+    ]
 
 
 class QrColorMask(BaseModel):

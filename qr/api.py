@@ -35,7 +35,6 @@ version_prefix = "v1"
 try:
     APP_VERSION = _pkg_version("qr-code-api")
 except PackageNotFoundError:
-    # Running from a source checkout that wasn't pip-installed.
     APP_VERSION = _fallback_version
 
 formatter = CustomJSONFormatter("%(asctime)s")
@@ -59,7 +58,7 @@ def get_extra_info(request: Request, request_body, response: Response):
         except (json.JSONDecodeError, TypeError):
             body = request_body
     client_host, _ = request.client if request.client else (None, None)
-    trace_id = getattr(request.state, "trace_id", "N/A")  # <<< ADDED
+    trace_id = getattr(request.state, "trace_id", "N/A")
     return {
         "trace_id": trace_id,
         "request": {
@@ -129,8 +128,8 @@ app.mount(
 # Logging middleware
 @app.middleware("http")
 async def log_request(request: Request, call_next):
-    trace_id = str(uuid.uuid4())  # <<< ADDED
-    request.state.trace_id = trace_id  # <<< ADDED
+    trace_id = str(uuid.uuid4())
+    request.state.trace_id = trace_id
 
     req_body = await request.body()
     response = await call_next(request)

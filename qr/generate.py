@@ -75,10 +75,6 @@ MODULE_DRAWERS: Dict[str, Tuple[Union[Type, Callable], Union[Any, None]]] = {
 }
 
 
-# https://github.com/lincolnloop/python-qrcode
-# https://github.com/reegan-anne/python_qrcode/blob/main/main.ipynb
-# https://medium.com/@kamilmatejuk/how-to-easily-create-custom-qr-codes-in-python-e0f5ca6364a1
-# https://github.com/KamilMatejuk/python-qrcode
 def generate_qr_image(
     data: str,
     module_drawer: BaseModuleDrawerOptions = SquareModuleDrawerOptions(),
@@ -141,7 +137,6 @@ def generate_qr_image(
 
     kwargs: dict[str, Any] = {**{"module_drawer": module_drawer_arg}, **svg_kwargs}
 
-    # --- Color mask ---
     col_mask_instance = None
     if color_mask:
         mask_type = color_mask.get("type")
@@ -151,12 +146,10 @@ def generate_qr_image(
         col_mask_instance = create_color_mask(cast(QrColorMaskType, mask_type), options)
 
     output_format = output.format
-    # --- SVG output ---
     if output_format == "svg":
         kwargs = {**kwargs, **svg_kwargs}
         return qr.make_image(image_factory=factory, **kwargs)
 
-    # --- PNG output ---
     if output_format == "png" or output_format == "jpeg" or output_format == "webp":
         if col_mask_instance:
             kwargs["color_mask"] = col_mask_instance

@@ -35,7 +35,6 @@ RadiusMetrics = tuple[int, float]
 
 
 class EyeRadiusCalculator:
-    # --- Fixed QR Code Geometry Constants ---
     OUTER_EYE_MODULES: ClassVar[int] = 7  # The main finder pattern is always 7x7
     INNER_EYEBALL_MODULES: ClassVar[int] = 3  # The central square is always 3x3
 
@@ -125,7 +124,6 @@ class BaseEyeDrawer(abc.ABC):
         Initializes the drawer with the image. The 'img' passed here is actually
         the image factory instance (StyledPilImageEyeDrawer), so we set factory right away.
         """
-        # Type cast to resolve the mypy error: BaseImage -> StyledPilImageEyeDrawer
         self.img = cast("StyledPilImageEyeDrawer", img)
         self.factory = self.img
 
@@ -289,7 +287,6 @@ class ConfigurableEyeDrawer(BaseEyeDrawer):
             # standard dictionary for consistent access using .get().
             component_config = component_config_model.model_dump()
         else:
-            # Use default configuration (which is already a dictionary)
             component_config = self.DEFAULT_CONFIG[component]
 
         # 2. Extract and Normalize OUTLINE color

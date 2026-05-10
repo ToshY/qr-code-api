@@ -1,5 +1,5 @@
 click>=8.2,<9.0
-fastapi[standard]>=0.118
+fastapi[standard]>=0.136.1
 pydantic>=2.7.0,<3.0.0
 uvicorn>=0.37
 pillow>=11.3,<13.0

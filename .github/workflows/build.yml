@@ -6,6 +6,22 @@ on:
       - main
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.pre-commit-config.yaml'
+      - 'Taskfile.yml'
+      - 'compose.yaml'
+      - 'compose.*.yaml'
+      - 'requirements.dev.txt'
+      - 'tests/**'
+      - 'scripts/**'
+      - '.devcontainer/**'
+      - '.github/**'
+      - '!.github/workflows/build.yml'
 
 env:
   CONTAINER_REPO_OWNER: toshy

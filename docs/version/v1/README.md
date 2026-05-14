@@ -102,7 +102,9 @@ _Structure_
   "data": "https://example.com",
   "fill_color": { "r": 0, "g": 47, "b": 167 },
   "back_color": { "r": 167, "g": 120, "b": 0 },
-  "module_drawer": "square_module"
+  "module_drawer": {
+    "type": "square_module"
+  }
 }
 ```
 

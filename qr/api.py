@@ -29,6 +29,7 @@ from qr.schemas import (
 from qr.generate import generate_qr_image
 from qr.log.logger import get_logger
 from qr.log.formatter import CustomJSONFormatter
+from qr.auth import require_api_key
 
 version_prefix = "v1"
 
@@ -158,7 +159,7 @@ router = APIRouter(prefix=f"/{version_prefix}")
     description="Generate a QR code in PNG, JPEG, WebP, or SVG format. "
     "Supports color masks, embedded images, and optional JSON data URI output.",
     response_description="Returns the QR code as an image or a JSON data URI.",
-    dependencies=[Depends(require_json)],
+    dependencies=[Depends(require_json), Depends(require_api_key)],
 )
 async def create_qr(request: CreateQrRequest, raw_request: Request):
     try:

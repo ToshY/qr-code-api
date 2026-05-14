@@ -270,3 +270,54 @@ def test_create_qr_unknown_field(snapshot):
     response = client.post("/v1/qr", json=payload)
     assert response.status_code == 200
     assert response.content == snapshot
+
+
+# ---------------------------------------------------------------------------
+# Authentication (Bearer token via QR_CODE_API_KEYS env var)
+# ---------------------------------------------------------------------------
+
+_VALID_KEY = "test-secret-key"
+_AUTH_PAYLOAD = {
+    "data": "auth check",
+    "module_drawer": {"type": PIL_DRAWERS[0].value},
+}
+
+
+def test_auth_disabled_by_default(monkeypatch):
+    monkeypatch.delenv("QR_CODE_API_KEYS", raising=False)
+    response = client.post("/v1/qr", json=_AUTH_PAYLOAD)
+    assert response.status_code == 200
+
+
+def test_auth_enabled_missing_token_returns_401(monkeypatch):
+    monkeypatch.setenv("QR_CODE_API_KEYS", _VALID_KEY)
+    response = client.post("/v1/qr", json=_AUTH_PAYLOAD)
+    assert response.status_code == 401
+
+
+def test_auth_enabled_invalid_token_returns_401(monkeypatch):
+    monkeypatch.setenv("QR_CODE_API_KEYS", _VALID_KEY)
+    response = client.post(
+        "/v1/qr",
+        json=_AUTH_PAYLOAD,
+        headers={"Authorization": "Bearer wrong-key"},
+    )
+    assert response.status_code == 401
+
+
+def test_auth_enabled_valid_token_returns_200(monkeypatch):
+    monkeypatch.setenv("QR_CODE_API_KEYS", f"another-key,{_VALID_KEY}")
+    response = client.post(
+        "/v1/qr",
+        json=_AUTH_PAYLOAD,
+        headers={"Authorization": f"Bearer {_VALID_KEY}"},
+    )
+    assert response.status_code == 200
+
+
+def test_auth_does_not_protect_docs_endpoints(monkeypatch):
+    monkeypatch.setenv("QR_CODE_API_KEYS", _VALID_KEY)
+    assert client.get("/v1/openapi.json").status_code == 200
+    # Swagger/ReDoc HTML pages
+    assert client.get("/v1/docs").status_code == 200
+    assert client.get("/v1/redoc").status_code == 200

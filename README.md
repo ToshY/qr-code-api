@@ -14,7 +14,7 @@
 
 ## 📝 Quickstart
 
-The published image is [`ghcr.io/toshy/qr-code-api`](ghcr.io/toshy/qr-code-api).
+The published image is available at [`ghcr.io/toshy/qr-code-api`](ghcr.io/toshy/qr-code-api).
 
 By default, the container runs in **CLI mode**; pass `server` as the argument to instead start the **FastAPI server**.
 
@@ -74,6 +74,36 @@ The server listens on port `8000`. For each major API version `v{N}` (e.g. `v1`)
 | `/v{N}/redoc`        | `GET`  | ReDoc                                                                    |
 | `/v{N}/readme`       | `GET`  | Rendered README documentation                                            |
 | `/v{N}/openapi.json` | `GET`  | OpenAPI specification                                                    |
+
+#### 🔐 Authentication (optional)
+
+The `POST /v{N}/qr` endpoint can be protected by a shared API key. Authentication is **disabled by default** and activates only when the `QR_CODE_API_KEYS` environment variable is set to a non-empty, comma-separated list of valid keys.
+
+Keys are sent as a Bearer token in the `Authorization` header:
+
+```
+Authorization: Bearer <your-api-key>
+```
+
+Run with auth enabled:
+
+```sh
+docker run --rm -p 8000:8000 \
+  -e QR_CODE_API_KEYS="$(openssl rand -hex 32)" \
+  ghcr.io/toshy/qr-code-api:latest server
+```
+
+Call it:
+
+```sh
+curl -X POST http://localhost:8000/v1/qr \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer ${QR_CODE_API_KEYS}" \
+  -d '{"data":"https://example.com"}' \
+  --output qr.png
+```
+
+The Swagger UI at `/v{N}/docs` exposes an **Authorize** button so you can paste a key once and use "Try it out" interactively. The remaining endpoints (`/docs`, `/redoc`, `/readme`, `/openapi.json`) stay public so the docs are always reachable.
 
 #### `docker run`
 

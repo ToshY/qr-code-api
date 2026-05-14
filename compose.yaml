@@ -5,6 +5,11 @@ services:
       dockerfile: Dockerfile
       target: dev
     user: "${PUID:-1000}:${PGID:-1000}"
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.example
+        required: true
     stop_signal: SIGINT
     volumes:
       - .:/app

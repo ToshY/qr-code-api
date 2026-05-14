@@ -75,36 +75,6 @@ The server listens on port `8000`. For each major API version `v{N}` (e.g. `v1`)
 | `/v{N}/readme`       | `GET`  | Rendered README documentation                                            |
 | `/v{N}/openapi.json` | `GET`  | OpenAPI specification                                                    |
 
-#### 🔐 Authentication (optional)
-
-The `POST /v{N}/qr` endpoint can be protected by a shared API key. Authentication is **disabled by default** and activates only when the `QR_CODE_API_KEYS` environment variable is set to a non-empty, comma-separated list of valid keys.
-
-Keys are sent as a Bearer token in the `Authorization` header:
-
-```
-Authorization: Bearer <your-api-key>
-```
-
-Run with auth enabled:
-
-```sh
-docker run --rm -p 8000:8000 \
-  -e QR_CODE_API_KEYS="$(openssl rand -hex 32)" \
-  ghcr.io/toshy/qr-code-api:latest server
-```
-
-Call it:
-
-```sh
-curl -X POST http://localhost:8000/v1/qr \
-  -H 'Content-Type: application/json' \
-  -H "Authorization: Bearer ${QR_CODE_API_KEYS}" \
-  -d '{"data":"https://example.com"}' \
-  --output qr.png
-```
-
-The Swagger UI at `/v{N}/docs` exposes an **Authorize** button so you can paste a key once and use "Try it out" interactively. The remaining endpoints (`/docs`, `/redoc`, `/readme`, `/openapi.json`) stay public so the docs are always reachable.
-
 #### `docker run`
 
 ```sh
@@ -142,6 +112,70 @@ services:
 ```sh
 docker compose up -d qr-code-api
 ```
+
+#### 🔐 Authentication (optional)
+
+The `POST /v{N}/qr` endpoint can be protected by a shared API key. Authentication is **disabled by default** and activates only when the `QR_CODE_API_KEYS` environment variable is set to a non-empty, comma-separated list of valid keys.
+
+Keys are sent as a Bearer token in the `Authorization` header:
+
+```
+Authorization: Bearer <your-api-key>
+```
+
+The Swagger UI at `/v{N}/docs` exposes an **Authorize** button so you can paste a key once and use "Try it out" interactively. The remaining endpoints (`/docs`, `/redoc`, `/readme`, `/openapi.json`) stay public so the docs are always reachable.
+
+##### With `docker run`
+
+```sh
+export QR_CODE_API_KEYS="$(openssl rand -hex 32)"
+
+docker run --rm \
+  -u $(id -u):$(id -g) \
+  -p 8000:8000 \
+  -e QR_CODE_API_KEYS \
+  ghcr.io/toshy/qr-code-api:latest \
+  server
+```
+
+##### With `docker compose`
+
+Add the env var to the service. Reading it from the host shell (or a `.env` file next to `compose.yaml`) keeps the secret out of version control:
+
+```yaml
+services:
+  qr-code-api:
+    image: ghcr.io/toshy/qr-code-api:latest
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "8000:8000"
+    environment:
+      QR_CODE_API_KEYS: ${QR_CODE_API_KEYS:?set QR_CODE_API_KEYS in your .env or shell}
+    command: ["server"]
+    restart: unless-stopped
+```
+
+`.env` (gitignored):
+
+```dotenv
+QR_CODE_API_KEYS=replace-with-a-long-random-string,optional-second-key
+```
+
+```sh
+docker compose up -d qr-code-api
+```
+
+##### Calling a protected endpoint
+
+```sh
+curl -X POST http://localhost:8000/v1/qr \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer ${QR_CODE_API_KEYS%%,*}" \
+  -d '{"data":"https://example.com"}' \
+  --output qr.png
+```
+
+> The `${QR_CODE_API_KEYS%%,*}` expansion sends only the first key when multiple are configured.
 
 ## 🛠️ Contribute
 

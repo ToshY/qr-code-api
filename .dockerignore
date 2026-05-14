@@ -23,3 +23,5 @@ docs/
 tests/
 scripts/
 .zensical.runtime.toml
+.env
+.env.example

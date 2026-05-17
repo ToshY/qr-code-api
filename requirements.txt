@@ -4,5 +4,5 @@ pydantic>=2.7.0,<3.0.0
 uvicorn>=0.46.0
 pillow>=11.3,<13.0
 qrcode[pil]>=8.2,<9.0
-types-qrcode>=8.2,<9.0
+types-qrcode>=8.2.0.20260508,<9.0
 starlette>=0.48,<1.0
